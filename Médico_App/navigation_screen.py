@@ -45,8 +45,8 @@ kv="""
                     MDList:
                         id:nav_list
                         OneLineIconListItem:
-                            text:'Salir'
-                            #on_release:app.cerrar_ventana()
+                            text:'Cerrar Sesión'
+                            on_release:app.cerrar_sesion()
 
                             IconLeftWidget:
                                 icon:"home-variant"
@@ -80,5 +80,10 @@ class NavigationScreen(MDScreen):
         self.ids.tool_bar.title=title
         self.ids.screen_manager.current=identification
         self.ids.nav_drawer.set_state()
-
-#video 5 casi final
+    
+    
+    def cerrar_sesion(self):
+        archivo_texto=open('info_paciente.txt','w')
+        archivo_texto.write('')
+        archivo_texto.close()
+        sys.exit()
