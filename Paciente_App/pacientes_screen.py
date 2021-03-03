@@ -1,11 +1,12 @@
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
-#Para el Banner
+# Para el Banner
 from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDIconButton
-from kivy.graphics import Color,RoundedRectangle
+from kivy.graphics import Color, RoundedRectangle
 from functools import partial
+from kivy.properties import NumericProperty
 from io import open
 import time
 import serial
@@ -13,7 +14,7 @@ from conexion_BD import MedicionesPacientes
 from conexion_BD import Conexion_BD
 ser = serial.Serial("COM6", 115200)
 
-kv="""
+kv = """
 <PacientesScreen>:
     name:'pacientes_screen'
     BoxLayout:
@@ -90,29 +91,34 @@ kv="""
 
 class PacientesScreen(MDScreen):
     Builder.load_string(kv)
-    
-    def __init__(self,**kw):
+    valTemp = NumericProperty()
+    valSO2 = NumericProperty()
+    valPulso = NumericProperty()
+
+    def __init__(self, **kw):
         super().__init__(**kw)
-        
-        self.insertar=Conexion_BD()
-    
+
+        self.insertar = Conexion_BD()
+
     def enviar_mediciones(self):
-        f=open('info_paciente.txt','r')
-        lineas_texto=f.readlines()
+        f = open('info_paciente.txt', 'r')
+        lineas_texto = f.readlines()
         f.close()
-        dni=int(lineas_texto[2])
-        fecha=time.strftime('%d/%m/%Y')
-        fecha_int=int(time.strftime('%Y%m%d'))
-        hora=time.strftime("%I:%M:%S %p")
-        hora_int=int(time.strftime("%H%M%S")) 
-        pulso=150#cambiar depende de sensor
-        temperatura=36.5#cambiar depende de sensor
-        oxigeno=80#cambiar depende de sensor
-        self.mediciones=MedicionesPacientes(dni,fecha,fecha_int,hora,hora_int,pulso,temperatura,oxigeno)
+        dni = int(lineas_texto[2])
+        fecha = time.strftime('%d/%m/%Y')
+        fecha_int = int(time.strftime('%Y%m%d'))
+        hora = time.strftime("%I:%M:%S %p")
+        hora_int = int(time.strftime("%H%M%S"))
+        pulso = self.valPulso  # cambiar depende de sensor
+        temperatura = self.valTemp
+        oxigeno = self.valSO2  # cambiar depende de sensor
+        self.mediciones = MedicionesPacientes(
+            dni, fecha, fecha_int, hora, hora_int, pulso, temperatura, oxigeno)
 
         self.insertar.insertar_dato(self.mediciones.toCollection())
+
     def Temperatura(self):
-  
+
         ser.write(chr(49).encode('ascii'))
         cc2 = ""
         sal = 0
@@ -136,6 +142,7 @@ class PacientesScreen(MDScreen):
                     break
             if sal == 1:
                 break
+        self.valTemp = round(ptemp, 2)
         self.ids['TEMPERATURA'].text = str(round(ptemp, 2))
 
     def SPO2(self):
@@ -164,7 +171,7 @@ class PacientesScreen(MDScreen):
                     break
             if sal == 1:
                 break
-
+        self.valSO2 = round(ptemp, 2)
         self.ids['SPO2'].text = str(round(ptemp, 2))
 
     def heart(self):
@@ -192,9 +199,7 @@ class PacientesScreen(MDScreen):
                     break
             if sal == 1:
                 break
-
+        self.valPulso = round(ptemp, 2)
         self.ids['PULSO'].text = str(round(ptemp, 2))
     # def on_pre_enter(self):
     #     funciones para antes q cargue la pantalla
-
-
